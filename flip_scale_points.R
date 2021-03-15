@@ -21,4 +21,4 @@ y2 <- rescale_y(tp[,2], 608, 284)
 windows()
 plot(ir)
 points(x2, y2)
-points(x2[260:262], y2[260:262], col="red", pch=16) #anchor points
+points(x2[260:262], y2[260:262], col="red", pch=16) #anchor points on thermal image
