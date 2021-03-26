@@ -1,6 +1,6 @@
 library(raster)
 
-ir <- raster("IR_dorsal transparent.png")
+ir <- raster("IR_dorsal transparent.JPG")
 
 load("tpoints.RData")
 
@@ -22,3 +22,9 @@ windows()
 plot(ir)
 points(x2, y2)
 points(x2[260:262], y2[260:262], col="red", pch=16) #anchor points on thermal image
+
+#Put rescaled points back into spatial points object
+scaled_points <- SpatialPoints(coords=cbind(x2, y2))
+
+#get values from the raster of xeno points
+scale<-extract(ir, scaled_points)
