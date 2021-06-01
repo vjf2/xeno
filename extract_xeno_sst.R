@@ -1,10 +1,33 @@
 ##How to find net cdf location based on lat long
 
-pts <- read.csv("Temp_Data_Points.csv")
+pts <- read.csv("Xeno data (updated 5_30_21).csv")
 
 #example file 
 
-ncin <- nc_open("SST CoralWatch/monthly/2020/ct5km_sst-mean_v3.1_202001.nc")
+library(ncdf4)
+
+##Function to fill in NA with nearest value
+f1 <- function(dat) {
+  N <- length(dat)
+  na.pos <- which(is.na(dat))
+  if (length(na.pos) %in% c(0, N)) {
+    return(dat)
+  }
+  non.na.pos <- which(!is.na(dat))
+  intervals  <- findInterval(na.pos, non.na.pos,
+                             all.inside = TRUE)
+  left.pos   <- non.na.pos[pmax(1, intervals)]
+  right.pos  <- non.na.pos[pmin(N, intervals+1)]
+  left.dist  <- na.pos - left.pos
+  right.dist <- right.pos - na.pos
+  
+  dat[na.pos] <- ifelse(left.dist <= right.dist,
+                        dat[left.pos], dat[right.pos])
+  return(dat)
+}
+
+
+ncin <- nc_open("D:/SatelliteImagery/SST CoralWatch/monthly/2020/ct5km_sst-mean_v3.1_202001.nc")
 
 lon <- ncvar_get(ncin,"lon")
 lat <- ncvar_get(ncin,"lat")
@@ -28,7 +51,8 @@ pts$TempAvailable <- apply(pts[, c("Longcell", "Latcell")], 1,
 ##Nest, source F1 function below to fill in NA cells with the nearest value
 
 #generate list of files
-b <- list.files(path="2020", pattern=".nc$", recursive=TRUE, full.names = TRUE)
+b <- list.files(path="D:/SatelliteImagery/SST CoralWatch/monthly/2020", 
+                pattern=".nc$", recursive=TRUE, full.names = TRUE)
 
 mytmps <- list()
 
@@ -57,26 +81,7 @@ final[, "sd_sst"] <- apply(final[,1:12], 1, sd)
 
 final <- cbind(pts, final)
 
-write.csv(final, "xeno_locations_sst.csv")
+write.csv(final, "xeno_locations_sst_20210601.csv")
 
-##Function to fill in NA with nearest value
-f1 <- function(dat) {
-  N <- length(dat)
-  na.pos <- which(is.na(dat))
-  if (length(na.pos) %in% c(0, N)) {
-    return(dat)
-  }
-  non.na.pos <- which(!is.na(dat))
-  intervals  <- findInterval(na.pos, non.na.pos,
-                             all.inside = TRUE)
-  left.pos   <- non.na.pos[pmax(1, intervals)]
-  right.pos  <- non.na.pos[pmin(N, intervals+1)]
-  left.dist  <- na.pos - left.pos
-  right.dist <- right.pos - na.pos
-  
-  dat[na.pos] <- ifelse(left.dist <= right.dist,
-                        dat[left.pos], dat[right.pos])
-  return(dat)
-}
 
 
